@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GRIDIRON ELITE — Level 4 Next Level</title>
+    <meta name="description" content="The official home of NFL excellence. Where tradition meets the future of the game.">
+    <meta property="og:title" content="GRIDIRON ELITE — Where Legends Are Forged">
+    <meta property="og:description" content="More than a game. A legacy of excellence, brotherhood, and greatness.">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { serif: ['Playfair Display', 'serif'], sans: ['Inter', 'sans-serif'] },
+                    colors: { gold: { DEFAULT: '#C7A368', dark: '#8a7044', light: '#e0b979' }, surface: { DEFAULT: '#050505', 100: '#0A0A0A', 200: '#0F0F0F' } }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #050505; color: #e5e5e5; overflow-x: hidden; }
+        h1,h2,h3,h4,.font-serif { font-family: 'Playfair Display', serif; }
+        body::before {
+            content: ''; position: fixed; inset: 0; z-index: 9999; pointer-events: none; opacity: 0.05;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+
+        /* ===== WEBGL SHADER CANVAS ===== */
+        #webgl-bg {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.4;
+        }
+
+        /* ===== PARTICLE CANVAS ===== */
+        #particle-canvas {
+            position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0.6;
+        }
+
+        /* ===== CURSOR FOLLOWER ===== */
+        #cursor-dot {
+            position: fixed; width: 8px; height: 8px; background: #C7A368; border-radius: 50%;
+            pointer-events: none; z-index: 99998; transform: translate(-50%, -50%);
+            transition: width 0.3s, height 0.3s, background 0.3s; mix-blend-mode: difference;
+        }
+        #cursor-ring {
+            position: fixed; width: 40px; height: 40px; border: 1px solid rgba(199,163,104,0.4);
+            border-radius: 50%; pointer-events: none; z-index: 99997; transform: translate(-50%, -50%);
+            transition: width 0.4s cubic-bezier(0.16,1,0.3,1), height 0.4s cubic-bezier(0.16,1,0.3,1), border-color 0.3s, opacity 0.3s;
+            opacity: 0;
+        }
+        #cursor-dot.hovering { width: 50px; height: 50px; background: rgba(199,163,104,0.15); }
+        #cursor-ring.hovering { width: 60px; height: 60px; border-color: rgba(199,163,104,0.6); }
+        @media (pointer: coarse) { #cursor-dot, #cursor-ring { display: none !important; } }
+
+        /* ===== PAGE TRANSITIONS ===== */
+        .page-transition {
+            position: fixed; inset: 0; z-index: 99990; pointer-events: none;
+        }
+        .page-transition .curtain {
+            position: absolute; inset: 0; background: #050505;
+            transform: scaleY(0); transform-origin: bottom;
+        }
+        .page-transition.entering .curtain {
+            animation: curtain-in 0.6s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+        }
+        .page-transition.leaving .curtain {
+            transform-origin: top;
+            animation: curtain-out 0.6s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+        }
+        @keyframes curtain-in { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+        @keyframes curtain-out { from { transform: scaleY(1); } to { transform: scaleY(0); } }
+
+        /* ===== BARBA CONTENT WRAPPER ===== */
+        [data-barba="container"] { position: relative; z-index: 2; }
+        [data-barba="container"].barba-leave { animation: content-out 0.4s ease forwards; }
+        [data-barba="container"].barba-enter { animation: content-in 0.5s cubic-bezier(0.16,1,0.3,1) forwards; }
+        @keyframes content-out { to { opacity: 0; transform: translateY(20px); filter: blur(4px); } }
+        @keyframes content-in { from { opacity: 0; transform: translateY(20px); filter: blur(4px); } to { opacity: 1; transform: translateY(0); filter: blur(0); } }
+
+        /* ===== 3D CANVAS ===== */
+        #three-container {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 400px; height: 400px; z-index: 5; pointer-events: none;
+        }
+        @media (max-width: 768px) { #three-container { width: 250px; height: 250px; } }
+
+        /* ===== PARALLAX ===== */
+        .parallax-layer { will-change: transform; transition: transform 0.1s linear; }
+
+        /* ===== SCROLL REVEAL ===== */
+        .reveal-on-scroll { opacity: 0; transform: translateY(30px); transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+        .reveal-on-scroll.is-visible { opacity: 1; transform: translateY(0); }
+
+        /* ===== SHINE ===== */
+        @keyframes shine { to { background-position: 200% center; } }
+        .text-shine {
+            background: linear-gradient(to right, #fbf2e2, #C7A368, #fbf2e2);
+            background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text; animation: shine 5s linear infinite;
+        }
+
+        /* ===== CARD GLOW ===== */
+        .card-glow::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(199,163,104,0.3), transparent);
+            opacity: 0; transition: opacity 0.5s;
+        }
+        .card-glow:hover::before { opacity: 1; }
+
+        /* ===== PRELOADER ===== */
+        #preloader {
+            position: fixed; inset: 0; z-index: 99999; background: #050505;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+        }
+        #preloader.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+        @keyframes logo-pulse { 0%, 100% { transform: scale(1); opacity: 0.6; } 50% { transform: scale(1.1); opacity: 1; } }
+        .preloader-logo { animation: logo-pulse 1.5s ease-in-out infinite; }
+        @keyframes loader-bar { 0% { width: 0%; } 100% { width: 100%; } }
+        .loader-bar { animation: loader-bar 2s ease-in-out forwards; }
+        .preloader-count { font-variant-numeric: tabular-nums; }
+
+        /* ===== PULSE RING ===== */
+        @keyframes pulse-ring { 0% { transform: scale(0.8); opacity: 1; } 100% { transform: scale(2.2); opacity: 0; } }
+        .pulse-ring::after {
+            content: ''; position: absolute; inset: -4px; border-radius: 50%;
+            border: 1px solid #22c55e; animation: pulse-ring 1.5s ease-out infinite;
+        }
+
+        /* ===== PLAY RIPPLE ===== */
+        @keyframes ripple { 0% { transform: scale(1); opacity: 0.4; } 100% { transform: scale(1.8); opacity: 0; } }
+        .play-ripple::before, .play-ripple::after {
+            content: ''; position: absolute; inset: -8px; border-radius: 50%;
+            border: 2px solid #C7A368; animation: ripple 2s ease-out infinite;
+        }
+        .play-ripple::after { animation-delay: 1s; }
+
+        /* ===== ACCORDION ===== */
+        @keyframes sweep { 0% { opacity: 0; transform: translateY(-10px); } 100% { opacity: 1; transform: translateY(0); } }
+        .accordion-body { animation: sweep 0.3s ease-in-out; }
+
+        /* ===== BACK TO TOP ===== */
+        #back-to-top {
+            position: fixed; bottom: 2rem; left: 2rem; z-index: 9998;
+            width: 48px; height: 48px; border-radius: 50%;
+            background: rgba(10,10,10,0.9); border: 1px solid rgba(199,163,104,0.3);
+            backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center;
+            cursor: pointer; opacity: 0; visibility: hidden; transform: translateY(10px);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        #back-to-top.visible { opacity: 1; visibility: visible; transform: translateY(0); }
+        #back-to-top:hover { border-color: rgba(199,163,104,0.6); background: rgba(199,163,104,0.1); transform: translateY(-2px); }
+
+        /* ===== COOKIE BANNER ===== */
+        #cookie-banner {
+            position: fixed; bottom: 0; left: 0; right: 0; z-index: 9997;
+            transform: translateY(100%); transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        #cookie-banner.visible { transform: translateY(0); }
+
+        /* ===== MOBILE MENU ===== */
+        .mobile-menu { max-height: 0; overflow: hidden; transition: max-height 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+        .mobile-menu.open { max-height: 400px; }
+
+        /* ===== TOAST ===== */
+        @keyframes toast-in { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes toast-out { from { transform: translateX(0); opacity: 1; } to { transform: translateX(20px); opacity: 0; } }
+        .toast-enter { animation: toast-in 0.4s ease-out forwards; }
+        .toast-exit { animation: toast-out 0.4s ease-in forwards; }
+
+        /* ===== TESTIMONIAL SLIDER ===== */
+        .testimonial-track { display: flex; transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+
+        /* ===== SCROLLBAR ===== */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #050505; }
+        ::-webkit-scrollbar-thumb { background: #C7A368; border-radius: 3px; }
+    </style>
+</head>
+<body>
+
+<!-- ===================== PRELOADER ===================== -->
+<div id="preloader">
+    <div class="preloader-logo mb-8">
+        <iconify-icon icon="solar:football-bold" class="text-gold text-5xl"></iconify-icon>
+    </div>
+    <div class="flex items-center gap-3 mb-4">
+        <span class="font-serif text-xl text-white tracking-tight">GRIDIRON</span>
+        <span class="font-serif text-xl text-gold tracking-tight">ELITE</span>
+    </div>
+    <div class="font-serif text-5xl text-white preloader-count mb-6" id="preloader-count">0</div>
+    <div class="w-48 h-[2px] bg-white/5 rounded-full overflow-hidden">
+        <div class="loader-bar h-full bg-gradient-to-r from-gold-dark via-gold to-gold-light rounded-full"></div>
+    </div>
+    <p class="text-[10px] text-neutral-600 uppercase tracking-widest mt-4">Loading experience</p>
+</div>
+
+<!-- ===================== PAGE TRANSITION CURTAIN ===================== -->
+<div class="page-transition" id="page-transition"><div class="curtain"></div></div>
+
+<!-- ===================== WEBGL SHADER BACKGROUND ===================== -->
+<canvas id="webgl-bg"></canvas>
+
+<!-- ===================== PARTICLE CANVAS ===================== -->
+<canvas id="particle-canvas"></canvas>
+
+<!-- ===================== CURSOR FOLLOWER ===================== -->
+<div id="cursor-dot"></div>
+<div id="cursor-ring"></div>
+
+<!-- Toast Container -->
+<div id="toast-container" class="fixed bottom-6 right-6 z-[10000] flex flex-col gap-3"></div>
+
+<!-- ===================== BACK TO TOP ===================== -->
+<button id="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+    <iconify-icon icon="solar:arrow-up-linear" class="text-gold text-lg"></iconify-icon>
+</button>
+
+<!-- ===================== COOKIE BANNER ===================== -->
+<div id="cookie-banner" class="bg-surface-100/95 backdrop-blur-xl border-t border-white/5">
+    <div class="max-w-6xl mx-auto px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+            <iconify-icon icon="solar:shield-check-linear" class="text-gold text-xl flex-shrink-0"></iconify-icon>
+            <p class="text-xs text-neutral-400 leading-relaxed">We use cookies to enhance your experience. By continuing, you agree to our <a href="#" class="text-gold hover:underline">Privacy Policy</a>.</p>
+        </div>
+        <div class="flex items-center gap-3 flex-shrink-0">
+            <button onclick="dismissCookie()" class="px-4 py-2 text-xs text-neutral-500 hover:text-neutral-300 transition-colors">Decline</button>
+            <button onclick="dismissCookie()" class="px-5 py-2 bg-gold text-surface text-xs font-semibold rounded-full hover:bg-gold-light transition-colors">Accept All</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===================== NAVIGATION ===================== -->
+<nav id="navbar" class="fixed top-0 left-0 right-0 z-[9995] transition-all duration-500">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+        <a href="#" class="flex items-center gap-3 group cursor-pointer" data-hover>
+            <div class="w-10 h-10 rounded-full border border-white/10 bg-white/[0.03] flex items-center justify-center group-hover:border-gold/30 transition-colors duration-300">
+                <iconify-icon icon="solar:football-bold" class="text-gold text-lg"></iconify-icon>
+            </div>
+            <div>
+                <span class="font-serif text-lg text-white tracking-tight">GRIDIRON</span>
+                <span class="font-serif text-lg text-gold tracking-tight ml-1">ELITE</span>
+            </div>
+        </a>
+        <div class="hidden md:flex items-center gap-8">
+            <a href="#about" class="text-sm text-neutral-400 hover:text-gold transition-colors duration-300" data-hover>About</a>
+            <a href="#halloffame" class="text-sm text-neutral-400 hover:text-gold transition-colors duration-300" data-hover>Legends</a>
+            <a href="#community" class="text-sm text-neutral-400 hover:text-gold transition-colors duration-300" data-hover>Community</a>
+            <a href="#news" class="text-sm text-neutral-400 hover:text-gold transition-colors duration-300" data-hover>News</a>
+            <a href="#membership" class="ml-4 inline-flex items-center gap-2 px-5 py-2.5 bg-gold text-surface text-xs font-semibold uppercase tracking-wider rounded-full hover:bg-gold-light hover:scale-105 transition-all duration-300 cursor-pointer" data-hover style="box-shadow: 0 0 20px -5px rgba(199,163,104,0.4);">
+                Join Now <iconify-icon icon="solar:arrow-right-linear" class="text-sm"></iconify-icon>
+            </a>
+        </div>
+        <button id="mobile-toggle" class="md:hidden text-white" onclick="toggleMobileMenu()">
+            <iconify-icon icon="solar:hamburger-menu-linear" class="text-2xl"></iconify-icon>
+        </button>
+    </div>
+    <div id="mobile-menu" class="mobile-menu md:hidden bg-surface-100/95 backdrop-blur-xl border-t border-white/5">
+        <div class="px-6 py-6 flex flex-col gap-4">
+            <a href="#about" class="text-sm text-neutral-400 hover:text-gold transition-colors" onclick="closeMobileMenu()">About</a>
+            <a href="#halloffame" class="text-sm text-neutral-400 hover:text-gold transition-colors" onclick="closeMobileMenu()">Legends</a>
+            <a href="#community" class="text-sm text-neutral-400 hover:text-gold transition-colors" onclick="closeMobileMenu()">Community</a>
+            <a href="#news" class="text-sm text-neutral-400 hover:text-gold transition-colors" onclick="closeMobileMenu()">News</a>
+            <a href="#membership" class="mt-2 inline-flex items-center justify-center gap-2 px-5 py-3 bg-gold text-surface text-xs font-semibold uppercase tracking-wider rounded-full" onclick="closeMobileMenu()">Join Now</a>
+        </div>
+    </div>
+</nav>
+
+<!-- ===================== MAIN CONTENT (BARBA) ===================== -->
+<main data-barba="container" data-barba-namespace="home">
+
+    <!-- ===== HERO ===== -->
+    <section class="relative min-h-screen flex flex-col items-center justify-center px-4 overflow-hidden">
+        <!-- Parallax BG -->
+        <div class="parallax-layer absolute inset-0" data-speed="0.3">
+            <img src="https://picsum.photos/seed/nflstadiumL4/1920/1080.jpg" alt="Stadium" class="w-full h-full object-cover opacity-25 scale-110" style="filter: grayscale(60%) contrast(110%);" loading="eager">
+        </div>
+        <div class="absolute inset-0" style="background: linear-gradient(to top, #050505, rgba(5,5,5,0.5), rgba(5,5,5,0.2));"></div>
+        <div class="absolute inset-0 bg-gradient-to-r from-surface via-surface/80 to-transparent"></div>
+
+        <!-- 3D Football -->
+        <div id="three-container"></div>
+
+        <!-- Content -->
+        <div class="relative z-10 text-center max-w-5xl mx-auto pt-32">
+            <div class="reveal-on-scroll inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/[0.03] backdrop-blur-md mb-8">
+                <span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span></span>
+                <span class="text-xs font-medium text-neutral-400 uppercase tracking-wider">2025 Season Live</span>
+            </div>
+            <h1 class="reveal-on-scroll font-serif text-5xl md:text-7xl lg:text-8xl text-white leading-[1.1] tracking-tight mb-6" style="transition-delay: 100ms;">
+                Where Legends<br><span class="text-shine">Are Forged</span>
+            </h1>
+            <p class="reveal-on-scroll text-lg md:text-xl text-neutral-400 font-light leading-relaxed max-w-2xl mx-auto mb-10" style="transition-delay: 200ms;">
+                More than a game. A legacy of excellence, brotherhood, and the relentless pursuit of greatness.
+            </p>
+            <div class="reveal-on-scroll flex flex-col sm:flex-row items-center justify-center gap-4" style="transition-delay: 300ms;">
+                <a href="#membership" class="group inline-flex items-center gap-2 px-8 py-4 bg-gold text-surface text-sm font-semibold uppercase tracking-wider rounded-full hover:bg-gold-light hover:scale-105 transition-all duration-300 cursor-pointer" data-hover style="box-shadow: 0 0 30px -5px rgba(199,163,104,0.4);">
+                    Become a Member <iconify-icon icon="solar:arrow-right-linear" class="group-hover:translate-x-1 transition-transform duration-300"></iconify-icon>
+                </a>
+                <a href="#video" class="group inline-flex items-center gap-3 px-8 py-4 border border-white/10 text-white text-sm font-medium uppercase tracking-wider rounded-full hover:border-gold/30 hover:bg-white/[0.03] transition-all duration-300 cursor-pointer" data-hover>
+                    <iconify-icon icon="solar:play-bold" class="text-gold text-lg"></iconify-icon> Watch Highlights
+                </a>
+            </div>
+        </div>
+        <div class="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 reveal-on-scroll" style="transition-delay: 500ms;">
+            <span class="text-[10px] uppercase tracking-widest text-neutral-500">Scroll</span>
+            <div class="w-px h-10 bg-gradient-to-b from-gold/50 to-transparent"></div>
+        </div>
+    </section>
+
+    <!-- ===== STATS BAR ===== -->
+    <section class="relative border-y border-white/5 bg-surface-100 z-10">
+        <div class="max-w-6xl mx-auto px-6 py-12 grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div class="text-center reveal-on-scroll"><div class="font-serif text-3xl md:text-4xl text-white counter" data-target="32">0</div><div class="text-xs text-neutral-500 uppercase tracking-wider mt-2">Active Franchises</div></div>
+            <div class="text-center reveal-on-scroll" style="transition-delay: 100ms;"><div class="font-serif text-3xl md:text-4xl text-white counter" data-target="105">0</div><div class="text-xs text-neutral-500 uppercase tracking-wider mt-2">Seasons of Glory</div></div>
+            <div class="text-center reveal-on-scroll" style="transition-delay: 200ms;"><div class="font-serif text-3xl md:text-4xl text-gold counter" data-target="200">0</div><div class="text-xs text-neutral-500 uppercase tracking-wider mt-2">Million+ Fans</div></div>
+            <div class="text-center reveal-on-scroll" style="transition-delay: 300ms;"><div class="font-serif text-3xl md:text-4xl text-white counter" data-target="58">0</div><div class="text-xs text-neutral-500 uppercase tracking-wider mt-2">Super Bowls Played</div></div>
+        </div>
+    </section>
+
+    <!-- ===== ABOUT ===== -->
+    <section id="about" class="relative py-32 px-4 z-10">
+        <div class="max-w-6xl mx-auto grid md:grid-cols-2 gap-16 items-center">
+            <div class="reveal-on-scroll relative parallax-layer" data-speed="0.15">
+                <div class="relative rounded-2xl overflow-hidden" style="box-shadow: 0 0 50px -20px rgba(199,163,104,0.15);">
+                    <img src="https://picsum.photos/seed/nflplayerL4/800/1000.jpg" alt="Player" class="w-full h-[500px] object-cover" style="filter: grayscale(40%) contrast(110%);" loading="lazy">
+                    <div class="absolute inset-0 bg-gradient-to-t from-surface via-transparent to-transparent"></div>
+                    <div class="absolute bottom-6 left-6 right-6 p-4 rounded-xl bg-surface/80 backdrop-blur-md border border-white/10">
+                        <div class="flex items-center justify-between">
+                            <div><div class="text-xs text-neutral-500 uppercase tracking-wider">Legacy Index</div><div class="font-serif text-2xl text-gold mt-1">99.7</div></div>
+                            <div class="w-12 h-12 rounded-full border border-gold/30 flex items-center justify-center bg-gold/5"><iconify-icon icon="solar:crown-bold" class="text-gold text-xl"></iconify-icon></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="absolute -top-8 -left-8 w-32 h-32 border border-gold/10 rounded-2xl -z-10"></div>
+                <div class="absolute -bottom-8 -right-8 w-32 h-32 border border-gold/10 rounded-2xl -z-10"></div>
+            </div>
+            <div>
+                <div class="reveal-on-scroll"><span class="text-xs font-semibold text-gold uppercase tracking-wider">Our Philosophy</span><h2 class="font-serif text-4xl md:text-5xl text-white mt-4 mb-6 leading-tight">Built on <em class="text-gold">Tradition</em>,<br>Driven by Excellence</h2></div>
+                <div class="reveal-on-scroll" style="transition-delay: 100ms;"><p class="text-sm text-neutral-400 leading-relaxed mb-6">For over a century, the NFL has stood as the pinnacle of athletic competition. Every yard gained carries the weight of generations.</p><p class="text-sm text-neutral-400 leading-relaxed mb-8">We cultivate a culture of resilience, unity, and uncompromising standards.</p></div>
+                <div class="reveal-on-scroll space-y-4" style="transition-delay: 200ms;">
+                    <div class="flex items-start gap-4"><div class="w-10 h-10 rounded-lg bg-gold/5 border border-gold/20 flex items-center justify-center flex-shrink-0 mt-0.5"><iconify-icon icon="solar:shield-check-linear" class="text-gold"></iconify-icon></div><div><h4 class="text-white text-sm font-medium mb-1">Integrity First</h4><p class="text-xs text-neutral-500 leading-relaxed">Every decision rooted in fairness and respect for the game.</p></div></div>
+                    <div class="flex items-start gap-4"><div class="w-10 h-10 rounded-lg bg-gold/5 border border-gold/20 flex items-center justify-center flex-shrink-0 mt-0.5"><iconify-icon icon="solar:users-group-rounded-linear" class="text-gold"></iconify-icon></div><div><h4 class="text-white text-sm font-medium mb-1">Community Rooted</h4><p class="text-xs text-neutral-500 leading-relaxed">Fans are the heartbeat of every franchise.</p></div></div>
+                    <div class="flex items-start gap-4"><div class="w-10 h-10 rounded-lg bg-gold/5 border border-gold/20 flex items-center justify-center flex-shrink-0 mt-0.5"><iconify-icon icon="solar:star-bold" class="text-gold"></iconify-icon></div><div><h4 class="text-white text-sm font-medium mb-1">Championship Standard</h4><p class="text-xs text-neutral-500 leading-relaxed">We pursue greatness as a way of life.</p></div></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== HALL OF FAME ===== -->
+    <section id="halloffame" class="relative py-32 px-4 bg-surface-100 z-10">
+        <div class="absolute inset-0 bg-gradient-to-b from-surface via-transparent to-surface"></div>
+        <div class="max-w-6xl mx-auto relative z-10">
+            <div class="flex flex-col md:flex-row md:items-end md:justify-between mb-16 gap-4">
+                <div><span class="reveal-on-scroll text-xs font-semibold text-gold uppercase tracking-wider">Hall of Fame</span><h2 class="reveal-on-scroll font-serif text-4xl md:text-5xl text-white mt-4" style="transition-delay: 100ms;">Immortal <em class="text-gold">Legends</em></h2></div>
+                <div class="reveal-on-scroll flex gap-2" style="transition-delay: 200ms;">
+                    <button onclick="scrollLegends(-1)" class="w-10 h-10 rounded-full border border-white/10 bg-white/[0.03] flex items-center justify-center hover:border-gold/30 transition-colors cursor-pointer" data-hover><iconify-icon icon="solar:arrow-left-linear" class="text-neutral-400"></iconify-icon></button>
+                    <button onclick="scrollLegends(1)" class="w-10 h-10 rounded-full border border-white/10 bg-white/[0.03] flex items-center justify-center hover:border-gold/30 transition-colors cursor-pointer" data-hover><iconify-icon icon="solar:arrow-right-linear" class="text-neutral-400"></iconify-icon></button>
+                </div>
+            </div>
+            <div class="overflow-hidden">
+                <div id="legends-track" class="testimonial-track gap-6">
+                    <div class="flex-shrink-0 w-[300px] md:w-[350px] group cursor-pointer" data-hover><div class="relative rounded-2xl overflow-hidden mb-4"><img src="https://picsum.photos/seed/legend1b/700/900.jpg" alt="Brady" class="w-full h-[420px] object-cover group-hover:scale-105 transition-transform duration-700" style="filter: grayscale(30%);" loading="lazy"><div class="absolute inset-0 bg-gradient-to-t from-surface via-transparent to-transparent"></div><div class="absolute top-4 right-4 px-2.5 py-1 rounded-full bg-gold text-surface text-[9px] font-bold uppercase tracking-wider">HOF 2025</div><div class="absolute bottom-4 left-4 right-4"><div class="font-serif text-xl text-white">Tom Brady</div><div class="text-xs text-neutral-400 mt-1">QB · 7× Super Bowl Champion</div></div></div></div>
+                    <div class="flex-shrink-0 w-[300px] md:w-[350px] group cursor-pointer" data-hover><div class="relative rounded-2xl overflow-hidden mb-4"><img src="https://picsum.photos/seed/legend2r/700/900.jpg" alt="Rice" class="w-full h-[420px] object-cover group-hover:scale-105 transition-transform duration-700" style="filter: grayscale(30%);" loading="lazy"><div class="absolute inset-0 bg-gradient-to-t from-surface via-transparent to-transparent"></div><div class="absolute top-4 right-4 px-2.5 py-1 rounded-full bg-white/10 backdrop-blur-sm text-white text-[9px] font-bold uppercase tracking-wider">HOF 2010</div><div class="absolute bottom-4 left-4 right-4"><div class="font-serif text-xl text-white">Jerry Rice</div><div class="text-xs text-neutral-400 mt-1">WR · 3× Super Bowl Champion</div></div></div></div>
+                    <div class="flex-shrink-0 w-[300px] md:w-[350px] group cursor-pointer" data-hover><div class="relative rounded-2xl overflow-hidden mb-4"><img src="https://picsum.photos/seed/legend3lt/700/900.jpg" alt="LT" class="w-full h-[420px] object-cover group-hover:scale-105 transition-transform duration-700" style="filter: grayscale(30%);" loading="lazy"><div class="absolute inset-0 bg-gradient-to-t from-surface via-transparent to-transparent"></div><div class="absolute top-4 right-4 px-2.5 py-1 rounded-full bg-white/10 backdrop-blur-sm text-white text-[9px] font-bold uppercase tracking-wider">HOF 2018</div><div class="absolute bottom-4 left-4 right-4"><div class="font-serif text-xl text-white">Lawrence Taylor</div><div class="text-xs text-neutral-400 mt-1">LB · 2× Super Bowl Champion</div></div></div></div>
+                    <div class="flex-shrink-0 w-[300px] md:w-[350px] group cursor-pointer" data-hover><div class="relative rounded-2xl overflow-hidden mb-4"><img src="https://picsum.photos/seed/legend4pm/700/900.jpg" alt="Manning" class="w-full h-[420px] object-cover group-hover:scale-105 transition-transform duration-700" style="filter: grayscale(30%);" loading="lazy"><div class="absolute inset-0 bg-gradient-to-t from-surface via-transparent to-transparent"></div><div class="absolute top-4 right-4 px-2.5 py-1 rounded-full bg-white/10 backdrop-blur-sm text-white text-[9px] font-bold uppercase tracking-wider">HOF 2021</div><div class="absolute bottom-4 left-4 right-4"><div class="font-serif text-xl text-white">Peyton Manning</div><div class="text-xs text-neutral-400 mt-1">QB · 2× Super Bowl Champion</div></div></div></div>
+                    <div class="flex-shrink-0 w-[300px] md:w-[350px] group cursor-pointer" data-hover><div class="relative rounded-2xl overflow-hidden mb-4"><img src="https://picsum.photos/seed/legend5jb/700/900.jpg" alt="Brown" class="w-full h-[420px] object-cover group-hover:scale-105 transition-transform duration-700" style="filter: grayscale(30%);" loading="lazy"><div class="absolute inset-0 bg-gradient-to-t from-surface via-transparent to-transparent"></div><div class="absolute top-4 right-4 px-2.5 py-1 rounded-full bg-white/10 backdrop-blur-sm text-white text-[9px] font-bold uppercase tracking-wider">HOF 1971</div><div class="absolute bottom-4 left-4 right-4"><div class="font-serif text-xl text-white">Jim Brown</div><div class="text-xs text-neutral-400 mt-1">RB · NFL Icon</div></div></div></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== VIDEO HIGHLIGHT ===== -->
+    <section id="video" class="relative py-32 px-4 z-10">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-12"><span class="reveal-on-scroll text-xs font-semibold text-gold uppercase tracking-wider">Featured</span><h2 class="reveal-on-scroll font-serif text-4xl md:text-5xl text-white mt-4" style="transition-delay: 100ms;">The <em class="text-gold">Greatest</em> Moments</h2></div>
+            <div class="reveal-on-scroll relative rounded-2xl overflow-hidden cursor-pointer group parallax-layer" data-speed="0.08" style="transition-delay: 200ms; box-shadow: 0 0 80px -20px rgba(199,163,104,0.15);" onclick="showToast('Video player would open here')" data-hover>
+                <div class="aspect-video"><img src="https://picsum.photos/seed/nflvidL4/1280/720.jpg" alt="Highlight" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" style="filter: grayscale(30%) contrast(110%);" loading="lazy"></div>
+                <div class="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-colors duration-500"></div>
+                <div class="absolute inset-0 flex items-center justify-center"><div class="relative w-20 h-20 rounded-full bg-gold/20 backdrop-blur-md border border-gold/40 flex items-center justify-center play-ripple group-hover:scale-110 transition-transform duration-300"><iconify-icon icon="solar:play-bold" class="text-gold text-3xl ml-1"></iconify-icon></div></div>
+                <div class="absolute bottom-6 left-6 right-6">
+                    <div class="flex items-center gap-3 mb-2"><span class="px-2 py-0.5 rounded bg-gold/20 text-gold text-[9px] font-bold uppercase tracking-wider">Featured</span><span class="text-[10px] text-neutral-400">12:34</span></div>
+                    <h3 class="font-serif text-xl text-white">Super Bowl LVIII — The Final Drive</h3>
+                    <p class="text-xs text-neutral-400 mt-1">Relive the most dramatic finish in championship history</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== COMMUNITY ===== -->
+    <section id="community" class="relative py-32 px-4 bg-surface-100 z-10">
+        <div class="absolute inset-0 bg-gradient-to-b from-surface via-transparent to-surface"></div>
+        <div class="max-w-6xl mx-auto relative z-10">
+            <div class="grid md:grid-cols-2 gap-16 items-center">
+                <div>
+                    <span class="reveal-on-scroll text-xs font-semibold text-gold uppercase tracking-wider">The Brotherhood</span>
+                    <h2 class="reveal-on-scroll font-serif text-4xl md:text-5xl text-white mt-4 mb-6 leading-tight" style="transition-delay: 100ms;">More Than Fans.<br><em class="text-gold">Family.</em></h2>
+                    <p class="reveal-on-scroll text-sm text-neutral-400 leading-relaxed mb-8" style="transition-delay: 200ms;">The NFL community spans every state, every background. What unites us is shared values of perseverance, loyalty, and lifting each other up.</p>
+                    <div class="reveal-on-scroll space-y-6" style="transition-delay: 300ms;">
+                        <div class="flex items-center gap-4 group cursor-pointer" data-hover><div class="w-12 h-12 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center flex-shrink-0 group-hover:bg-gold/20 transition-colors"><iconify-icon icon="solar:map-point-wave-bold" class="text-gold text-xl"></iconify-icon></div><div class="flex-1"><h4 class="text-white text-sm font-medium">Local Fan Chapters</h4><p class="text-xs text-neutral-500 mt-0.5">2,400+ chapters across all 50 states</p></div><iconify-icon icon="solar:arrow-right-linear" class="text-neutral-500 group-hover:text-gold group-hover:translate-x-1 transition-all duration-300"></iconify-icon></div>
+                        <div class="flex items-center gap-4 group cursor-pointer" data-hover><div class="w-12 h-12 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center flex-shrink-0 group-hover:bg-gold/20 transition-colors"><iconify-icon icon="solar:hand-heart-bold" class="text-gold text-xl"></iconify-icon></div><div class="flex-1"><h4 class="text-white text-sm font-medium">NFL Foundation</h4><p class="text-xs text-neutral-500 mt-0.5">$500M+ donated to youth programs</p></div><iconify-icon icon="solar:arrow-right-linear" class="text-neutral-500 group-hover:text-gold group-hover:translate-x-1 transition-all duration-300"></iconify-icon></div>
+                        <div class="flex items-center gap-4 group cursor-pointer" data-hover><div class="w-12 h-12 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center flex-shrink-0 group-hover:bg-gold/20 transition-colors"><iconify-icon icon="solar:calendar-bold" class="text-gold text-xl"></iconify-icon></div><div class="flex-1"><h4 class="text-white text-sm font-medium">Exclusive Member Events</h4><p class="text-xs text-neutral-500 mt-0.5">Draft parties, watch events, meet & greets</p></div><iconify-icon icon="solar:arrow-right-linear" class="text-neutral-500 group-hover:text-gold group-hover:translate-x-1 transition-all duration-300"></iconify-icon></div>
+                    </div>
+                </div>
+                <div class="reveal-on-scroll grid grid-cols-2 gap-4" style="transition-delay: 150ms;">
+                    <div class="space-y-4"><div class="rounded-2xl overflow-hidden h-48"><img src="https://picsum.photos/seed/nflfanL4a/500/400.jpg" alt="" class="w-full h-full object-cover hover:scale-105 transition-transform duration-700" style="filter: grayscale(30%);" loading="lazy"></div><div class="rounded-2xl overflow-hidden h-64"><img src="https://picsum.photos/seed/nflcomL4b/500/600.jpg" alt="" class="w-full h-full object-cover hover:scale-105 transition-transform duration-700" style="filter: grayscale(30%);" loading="lazy"></div></div>
+                    <div class="space-y-4 pt-8"><div class="rounded-2xl overflow-hidden h-64"><img src="https://picsum.photos/seed/nfltailL4c/500/600.jpg" alt="" class="w-full h-full object-cover hover:scale-105 transition-transform duration-700" style="filter: grayscale(30%);" loading="lazy"></div><div class="rounded-2xl overflow-hidden h-48"><img src="https://picsum.photos/seed/nflcheerL4d/500/400.jpg" alt="" class="w-full h-full object-cover hover:scale-105 transition-transform duration-700" style="filter: grayscale(30%);" loading="lazy"></div></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== TESTIMONIALS ===== -->
+    <section class="relative py-32 px-4 z-10">
+        <div class="absolute top-0 left-1/3 w-80 h-80 rounded-full opacity-5" style="background: radial-gradient(circle, #C7A368, transparent 70%); filter: blur(100px);"></div>
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-16"><span class="reveal-on-scroll text-xs font-semibold text-gold uppercase tracking-wider">Voices of the Community</span><h2 class="reveal-on-scroll font-serif text-4xl md:text-5xl text-white mt-4" style="transition-delay: 100ms;">What <em class="text-gold">Members</em> Say</h2></div>
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="reveal-on-scroll relative p-8 rounded-2xl bg-white/[0.03] border border-white/5 hover:border-gold/20 transition-all duration-500 card-glow">
+                    <iconify-icon icon="solar:quote-up-square-bold" class="text-gold/20 text-3xl mb-4 block"></iconify-icon>
+                    <p class="text-sm text-neutral-300 leading-relaxed mb-6">"Joining the Captain tier changed my game-day experience completely. The community events made me feel like I'm part of something bigger."</p>
+                    <div class="flex items-center gap-3"><div class="w-10 h-10 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center"><span class="text-xs font-bold text-gold">MR</span></div><div><div class="text-sm text-white font-medium">Marcus Rivera</div><div class="text-xs text-neutral-500">Captain Member · Kansas City</div></div></div>
+                    <div class="flex gap-0.5 mt-4"><iconify-icon icon="solar:star-bold" class="text-gold text-xs"></iconify-icon><iconify-icon icon="solar:star-bold" class="text-gold text-xs"></iconify-icon><iconify-icon icon="solar:star-bold" class="text-gold text-xs"></iconify-icon><iconify-icon icon="solar:star-bold" class="text-gold text-xs"></iconify-icon><iconify-icon icon="solar:star-bold" class="text-gold text-xs"></iconify-icon></div>
+                </div>
+                <div class="reveal-on-scroll relative p-8 rounded-2xl bg-white/[0.03] border border-white/5 hover:border-gold/20 transition-all duration-500 card-glow" style="transition-delay: 100ms;">
+                    <iconify-icon icon="solar:quote-up-square-bold" class="text-gold/20 text-3xl mb-4 block"></iconify-icon>
+                    <p class="text-sm text-neutral-300 leading-relaxed mb-6">"I started a fan chapter in Austin with just 12 people. Now we're 340 strong. The NFL community team helped us every step."</p>
+                    <div class="flex items-center gap-3"><div class="w-10 h-10 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center"><span class="text-xs font-bold text-gold">SJ</span></div><div><div class="text-sm text-white font-medium">Sarah Johnson</div><div class="text-xs text-neutral-500">Chapter Captain · Austin, TX</div></div></div>
+                    <div class="flex gap-0.5 mt-4"><iconify-icon icon="solar:star-bold" class="text-gold text-xs"></iconify-icon><iconify-icon icon="solar:star-bold" class="text-gold text-xs"></iconify-icon><iconify-icon icon="solar:star-bold" class="text-gold text-xs"></iconify-icon><iconify-icon icon="solar:star-bold" class="text-gold text-xs"></iconify-icon><iconify-icon icon="solar:star-bold" class="text-gold text-xs"></iconify-icon></div>
+                </div>
+                <div class="reveal-on-scroll relative p-8 rounded-2xl bg-white/[0.03] border border-white/5 hover:border-gold/20 transition-all duration-500 card-glow" style="transition-delay: 200ms;">
+                    <iconify-icon icon="solar:quote-up-square-bold" class="text-gold/20 text-3xl mb-4 block"></iconify-icon>
+                    <p class="text-sm text-neutral-300 leading-relaxed mb-6">"The Legend tier VIP suite was unreal. My son met his hero after the game. That memory is priceless."</p>
+                    <div class="flex items-center gap-3"><div class="w-10 h-10 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center"><span class="text-xs font-bold text-gold">DW</span></div><div><div class="text-sm text-white font-medium">David Williams</div><div class="text-xs text-neutral-500">Legend Member · Dallas</div></div></div>
+                    <div class="flex gap-0.5 mt-4"><iconify-icon icon="solar:star-bold" class="text-gold text-xs"></iconify-icon><iconify-icon icon="solar:star-bold" class="text-gold text-xs"></iconify-icon><iconify-icon icon="solar:star-bold" class="text-gold text-xs"></iconify-icon><iconify-icon icon="solar:star-bold" class="text-gold text-xs"></iconify-icon><iconify-icon icon="solar:star-bold" class="text-gold text-xs"></iconify-icon></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== NEWS ===== -->
+    <section id="news" class="relative py-32 px-4 bg-surface-100 z-10">
+        <div class="max-w-6xl mx-auto">
+            <div class="flex flex-col md:flex-row md:items-end md:justify-between mb-16 gap-4">
+                <div><span class="reveal-on-scroll text-xs font-semibold text-gold uppercase tracking-wider">Latest</span><h2 class="reveal-on-scroll font-serif text-4xl md:text-5xl text-white mt-4" style="transition-delay: 100ms;">News & <em class="text-gold">Stories</em></h2></div>
+                <a href="#" class="reveal-on-scroll inline-flex items-center gap-2 text-gold text-xs font-medium uppercase tracking-wider hover:gap-3 transition-all cursor-pointer" style="transition-delay: 200ms;" data-hover>View All Articles <iconify-icon icon="solar:arrow-right-linear"></iconify-icon></a>
+            </div>
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="reveal-on-scroll md:col-span-2 group cursor-pointer" data-hover>
+                    <div class="relative rounded-2xl overflow-hidden mb-5"><div class="aspect-[16/9] overflow-hidden"><img src="https://picsum.photos/seed/nflnewsL4f/1200/675.jpg" alt="News" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" style="filter: grayscale(20%);" loading="lazy"></div><div class="absolute top-4 left-4 flex items-center gap-2"><span class="px-2.5 py-1 rounded-full bg-gold text-surface text-[9px] font-bold uppercase tracking-wider">Featured</span><span class="px-2.5 py-1 rounded-full bg-white/10 backdrop-blur-sm text-white text-[9px] font-medium uppercase tracking-wider">Trade</span></div></div>
+                    <div class="flex items-center gap-3 text-xs text-neutral-500 mb-3"><span>Dec 8, 2025</span><span>·</span><span>5 min read</span></div>
+                    <h3 class="font-serif text-xl text-white group-hover:text-gold transition-colors mb-2">Blockbuster Trade Shakes Up AFC Power Structure</h3>
+                    <p class="text-sm text-neutral-400 leading-relaxed">In a move that sent shockwaves through the league, two perennial contenders completed the most significant mid-season trade in over a decade...</p>
+                </div>
+                <div class="space-y-6">
+                    <div class="reveal-on-scroll group cursor-pointer flex gap-4" style="transition-delay: 100ms;" data-hover><div class="w-24 h-24 rounded-xl overflow-hidden flex-shrink-0"><img src="https://picsum.photos/seed/nflnL4g/200/200.jpg" alt="" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" style="filter: grayscale(30%);" loading="lazy"></div><div class="flex-1"><div class="text-[10px] text-neutral-500 mb-1">Dec 7, 2025</div><h4 class="text-sm text-white group-hover:text-gold transition-colors leading-snug">Rookie Sensation Breaks Single-Game Record</h4></div></div>
+                    <div class="w-full h-px bg-white/5"></div>
+                    <div class="reveal-on-scroll group cursor-pointer flex gap-4" style="transition-delay: 200ms;" data-hover><div class="w-24 h-24 rounded-xl overflow-hidden flex-shrink-0"><img src="https://picsum.photos/seed/nflnL4h/200/200.jpg" alt="" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" style="filter: grayscale(30%);" loading="lazy"></div><div class="flex-1"><div class="text-[10px] text-neutral-500 mb-1">Dec 6, 2025</div><h4 class="text-sm text-white group-hover:text-gold transition-colors leading-snug">NFL Foundation Announces $50M Youth Initiative</h4></div></div>
+                    <div class="w-full h-px bg-white/5"></div>
+                    <div class="reveal-on-scroll group cursor-pointer flex gap-4" style="transition-delay: 300ms;" data-hover><div class="w-24 h-24 rounded-xl overflow-hidden flex-shrink-0"><img src="https://picsum.photos/seed/nflnL4i/200/200.jpg" alt="" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" style="filter: grayscale(30%);" loading="lazy"></div><div class="flex-1"><div class="text-[10px] text-neutral-500 mb-1">Dec 5, 2025</div><h4 class="text-sm text-white group-hover:text-gold transition-colors leading-snug">How Data Science Is Changing Football</h4></div></div>
+                    <div class="w-full h-px bg-white/5"></div>
+                    <div class="reveal-on-scroll group cursor-pointer flex gap-4" style="transition-delay: 400ms;" data-hover><div class="w-24 h-24 rounded-xl overflow-hidden flex-shrink-0"><img src="https://picsum.photos/seed/nflnL4j/200/200.jpg" alt="" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" style="filter: grayscale(30%);" loading="lazy"></div><div class="flex-1"><div class="text-[10px] text-neutral-500 mb-1">Dec 4, 2025</div><h4 class="text-sm text-white group-hover:text-gold transition-colors leading-snug">Super Bowl LX Host City Unveils Plans</h4></div></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== NEWSLETTER ===== -->
+    <section class="relative py-24 px-4 z-10">
+        <div class="max-w-3xl mx-auto">
+            <div class="reveal-on-scroll relative p-10 md:p-14 rounded-2xl border border-gold/20 overflow-hidden" style="box-shadow: 0 0 80px -20px rgba(199,163,104,0.15);">
+                <div class="absolute inset-0 bg-gold/[0.03]"></div>
+                <div class="absolute top-0 right-0 w-64 h-64 rounded-full opacity-10" style="background: radial-gradient(circle, #C7A368, transparent 70%); filter: blur(80px);"></div>
+                <div class="relative z-10 text-center">
+                    <iconify-icon icon="solar:letter-bold" class="text-gold text-3xl mb-4"></iconify-icon>
+                    <h3 class="font-serif text-2xl md:text-3xl text-white mb-3">Stay in the <em class="text-gold">Huddle</em></h3>
+                    <p class="text-sm text-neutral-400 leading-relaxed max-w-md mx-auto mb-8">Weekly insights, exclusive content, and breaking news. Join 800,000+ subscribers.</p>
+                    <form id="newsletter-form" class="flex flex-col sm:flex-row gap-3 max-w-md mx-auto" onsubmit="handleNewsletter(event)">
+                        <input type="email" id="newsletter-email" required placeholder="Enter your email" class="flex-1 px-5 py-3.5 rounded-full bg-white/[0.05] border border-white/10 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-gold/40 transition-colors">
+                        <button type="submit" class="px-7 py-3.5 bg-gold text-surface text-xs font-semibold uppercase tracking-wider rounded-full hover:bg-gold-light hover:scale-105 transition-all duration-300 whitespace-nowrap cursor-pointer" data-hover style="box-shadow: 0 0 20px -5px rgba(199,163,104,0.4);">Subscribe</button>
+                    </form>
+                    <p class="text-[10px] text-neutral-600 mt-4">No spam. Unsubscribe anytime.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== GEAR ===== -->
+    <section id="gear" class="relative py-32 px-4 bg-surface-100 z-10">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-16"><span class="reveal-on-scroll text-xs font-semibold text-gold uppercase tracking-wider">Official Collection</span><h2 class="reveal-on-scroll font-serif text-4xl md:text-5xl text-white mt-4 mb-4" style="transition-delay: 100ms;">Wear the <em class="text-gold">Legacy</em></h2></div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div class="reveal-on-scroll group cursor-pointer" data-hover><div class="relative rounded-2xl overflow-hidden bg-white/[0.03] border border-white/5 hover:border-gold/20 transition-all duration-500 mb-4"><div class="aspect-square overflow-hidden"><img src="https://picsum.photos/seed/gearL4a/600/600.jpg" alt="" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" style="filter: grayscale(20%);" loading="lazy"></div><div class="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-gold text-surface text-[9px] font-bold uppercase tracking-wider">New</div></div><h4 class="text-sm text-white font-medium group-hover:text-gold transition-colors">Elite Pro Jersey</h4><p class="text-xs text-neutral-500 mt-1">$189.00</p></div>
+                <div class="reveal-on-scroll group cursor-pointer" style="transition-delay: 100ms;" data-hover><div class="relative rounded-2xl overflow-hidden bg-white/[0.03] border border-white/5 hover:border-gold/20 transition-all duration-500 mb-4"><div class="aspect-square overflow-hidden"><img src="https://picsum.photos/seed/gearL4b/600/600.jpg" alt="" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" style="filter: grayscale(20%);" loading="lazy"></div></div><h4 class="text-sm text-white font-medium group-hover:text-gold transition-colors">Heritage Snapback</h4><p class="text-xs text-neutral-500 mt-1">$45.00</p></div>
+                <div class="reveal-on-scroll group cursor-pointer" style="transition-delay: 200ms;" data-hover><div class="relative rounded-2xl overflow-hidden bg-white/[0.03] border border-white/5 hover:border-gold/20 transition-all duration-500 mb-4"><div class="aspect-square overflow-hidden"><img src="https://picsum.photos/seed/gearL4c/600/600.jpg" alt="" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" style="filter: grayscale(20%);" loading="lazy"></div><div class="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-white/10 backdrop-blur-sm text-white text-[9px] font-bold uppercase tracking-wider">Limited</div></div><h4 class="text-sm text-white font-medium group-hover:text-gold transition-colors">Sideline Puffer</h4><p class="text-xs text-neutral-500 mt-1">$275.00</p></div>
+                <div class="reveal-on-scroll group cursor-pointer" style="transition-delay: 300ms;" data-hover><div class="relative rounded-2xl overflow-hidden bg-white/[0.03] border border-white/5 hover:border-gold/20 transition-all duration-500 mb-4"><div class="aspect-square overflow-hidden"><img src="https://picsum.photos/seed/gearL4d/600/600.jpg" alt="" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" style="filter: grayscale(20%);" loading="lazy"></div></div><h4 class="text-sm text-white font-medium group-hover:text-gold transition-colors">Game Day Sneakers</h4><p class="text-xs text-neutral-500 mt-1">$160.00</p></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== FAQ ===== -->
+    <section class="relative py-32 px-4 z-10">
+        <div class="max-w-3xl mx-auto">
+            <div class="text-center mb-16"><span class="reveal-on-scroll text-xs font-semibold text-gold uppercase tracking-wider">Knowledge Base</span><h2 class="reveal-on-scroll font-serif text-4xl md:text-5xl text-white mt-4" style="transition-delay: 100ms;">Common <em class="text-gold">Questions</em></h2></div>
+            <div class="space-y-3">
+                <div class="reveal-on-scroll faq-item border border-white/5 rounded-2xl overflow-hidden hover:border-white/10 transition-colors duration-300"><button class="faq-toggle w-full flex items-center justify-between p-6 text-left cursor-pointer" onclick="toggleFaq(this)" data-hover><span class="text-sm text-white font-medium pr-4">How do I become an official NFL member?</span><iconify-icon icon="solar:alt-arrow-down-linear" class="text-neutral-500 text-lg flex-shrink-0 faq-icon transition-transform duration-300"></iconify-icon></button><div class="faq-content hidden px-6 pb-6"><p class="text-sm text-neutral-400 leading-relaxed accordion-body">Click "Join Now", select your tier, and complete registration. Instant access to member-exclusive content, early tickets, and community forums.</p></div></div>
+                <div class="reveal-on-scroll faq-item border border-white/5 rounded-2xl overflow-hidden hover:border-white/10 transition-colors duration-300" style="transition-delay: 100ms;"><button class="faq-toggle w-full flex items-center justify-between p-6 text-left cursor-pointer" onclick="toggleFaq(this)" data-hover><span class="text-sm text-white font-medium pr-4">What benefits do community members receive?</span><iconify-icon icon="solar:alt-arrow-down-linear" class="text-neutral-500 text-lg flex-shrink-0 faq-icon transition-transform duration-300"></iconify-icon></button><div class="faq-content hidden px-6 pb-6"><p class="text-sm text-neutral-400 leading-relaxed accordion-body">Priority tickets, exclusive merch, chapter events, foundation volunteering, personalized experiences, and members-only digital lounge.</p></div></div>
+                <div class="reveal-on-scroll faq-item border border-white/5 rounded-2xl overflow-hidden hover:border-white/10 transition-colors duration-300" style="transition-delay: 200ms;"><button class="faq-toggle w-full flex items-center justify-between p-6 text-left cursor-pointer" onclick="toggleFaq(this)" data-hover><span class="text-sm text-white font-medium pr-4">How can I start a local fan chapter?</span><iconify-icon icon="solar:alt-arrow-down-linear" class="text-neutral-500 text-lg flex-shrink-0 faq-icon transition-transform duration-300"></iconify-icon></button><div class="faq-content hidden px-6 pb-6"><p class="text-sm text-neutral-400 leading-relaxed accordion-body">Apply as Chapter Captain. Need 10+ founding members, a meeting location, and monthly event commitment. Our team guides you through setup.</p></div></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== MEMBERSHIP CTA ===== -->
+    <section id="membership" class="relative py-32 px-4 overflow-hidden z-10">
+        <div class="absolute inset-0"><img src="https://picsum.photos/seed/nflnightL4/1920/800.jpg" alt="" class="w-full h-full object-cover opacity-20" style="filter: grayscale(50%);" loading="lazy"><div class="absolute inset-0 bg-gradient-to-t from-surface via-surface/90 to-surface/70"></div></div>
+        <div class="absolute inset-0" style="background: radial-gradient(ellipse at center, rgba(199,163,104,0.08), transparent 60%);"></div>
+        <div class="max-w-4xl mx-auto relative z-10 text-center">
+            <div class="reveal-on-scroll inline-flex items-center gap-2 px-4 py-2 rounded-full border border-gold/20 bg-gold/5 mb-8"><iconify-icon icon="solar:crown-bold" class="text-gold text-sm"></iconify-icon><span class="text-xs font-medium text-gold uppercase tracking-wider">Limited Spots</span></div>
+            <h2 class="reveal-on-scroll font-serif text-4xl md:text-6xl text-white mb-6 leading-tight" style="transition-delay: 100ms;">Join the <span class="text-shine">Inner Circle</span></h2>
+            <p class="reveal-on-scroll text-lg text-neutral-400 font-light leading-relaxed max-w-2xl mx-auto mb-12" style="transition-delay: 200ms;">An exclusive membership for the dedicated few.</p>
+            <div class="reveal-on-scroll grid md:grid-cols-3 gap-6" style="transition-delay: 300ms;">
+                <div class="p-6 rounded-2xl bg-white/[0.03] border border-white/5 hover:border-white/10 transition-all duration-500"><div class="text-xs text-neutral-500 uppercase tracking-wider mb-2">Fan</div><div class="font-serif text-3xl text-white mb-1">Free</div><p class="text-xs text-neutral-500 mb-6">The basics</p><ul class="space-y-3 text-left mb-8"><li class="flex items-center gap-2 text-xs text-neutral-400"><iconify-icon icon="solar:check-circle-linear" class="text-gold flex-shrink-0"></iconify-icon>Forum access</li><li class="flex items-center gap-2 text-xs text-neutral-400"><iconify-icon icon="solar:check-circle-linear" class="text-gold flex-shrink-0"></iconify-icon>Newsletter</li><li class="flex items-center gap-2 text-xs text-neutral-400"><iconify-icon icon="solar:check-circle-linear" class="text-gold flex-shrink-0"></iconify-icon>Schedule alerts</li></ul><button onclick="showToast('Free membership activated!')" class="w-full py-3 rounded-full border border-white/10 text-sm text-neutral-400 hover:border-gold/30 hover:text-gold transition-all duration-300 cursor-pointer" data-hover>Get Started</button></div>
+                <div class="relative p-6 rounded-2xl bg-gold/5 border border-gold/30 hover:border-gold/50 transition-all duration-500" style="box-shadow: 0 0 50px -20px rgba(199,163,104,0.3);"><div class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-gold text-surface text-[9px] font-bold uppercase tracking-wider">Popular</div><div class="text-xs text-gold uppercase tracking-wider mb-2">Captain</div><div class="font-serif text-3xl text-white mb-1">$14.99<span class="text-lg text-neutral-500">/mo</span></div><p class="text-xs text-neutral-500 mb-6">Dedicated fan</p><ul class="space-y-3 text-left mb-8"><li class="flex items-center gap-2 text-xs text-neutral-300"><iconify-icon icon="solar:check-circle-bold" class="text-gold flex-shrink-0"></iconify-icon>Everything in Fan</li><li class="flex items-center gap-2 text-xs text-neutral-300"><iconify-icon icon="solar:check-circle-bold" class="text-gold flex-shrink-0"></iconify-icon>Early tickets</li><li class="flex items-center gap-2 text-xs text-neutral-300"><iconify-icon icon="solar:check-circle-bold" class="text-gold flex-shrink-0"></iconify-icon>Exclusive merch</li><li class="flex items-center gap-2 text-xs text-neutral-300"><iconify-icon icon="solar:check-circle-bold" class="text-gold flex-shrink-0"></iconify-icon>BTS content</li></ul><button onclick="showToast('Redirecting to checkout...')" class="w-full py-3 rounded-full bg-gold text-surface text-sm font-semibold hover:bg-gold-light hover:scale-[1.02] transition-all duration-300 cursor-pointer" data-hover style="box-shadow: 0 0 20px -5px rgba(199,163,104,0.4);">Join Captain</button></div>
+                <div class="p-6 rounded-2xl bg-white/[0.03] border border-white/5 hover:border-white/10 transition-all duration-500"><div class="text-xs text-neutral-500 uppercase tracking-wider mb-2">Legend</div><div class="font-serif text-3xl text-white mb-1">$49.99<span class="text-lg text-neutral-500">/mo</span></div><p class="text-xs text-neutral-500 mb-6">Ultimate</p><ul class="space-y-3 text-left mb-8"><li class="flex items-center gap-2 text-xs text-neutral-400"><iconify-icon icon="solar:check-circle-linear" class="text-gold flex-shrink-0"></iconify-icon>Everything in Captain</li><li class="flex items-center gap-2 text-xs text-neutral-400"><iconify-icon icon="solar:check-circle-linear" class="text-gold flex-shrink-0"></iconify-icon>VIP suites</li><li class="flex items-center gap-2 text-xs text-neutral-400"><iconify-icon icon="solar:check-circle-linear" class="text-gold flex-shrink-0"></iconify-icon>Meet & greet</li><li class="flex items-center gap-2 text-xs text-neutral-400"><iconify-icon icon="solar:check-circle-linear" class="text-gold flex-shrink-0"></iconify-icon>Legend kit</li></ul><button onclick="showToast('Redirecting to checkout...')" class="w-full py-3 rounded-full border border-white/10 text-sm text-neutral-400 hover:border-gold/30 hover:text-gold transition-all duration-300 cursor-pointer" data-hover>Join Legend</button></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="border-t border-white/5 bg-surface-100 z-10">
+        <div class="max-w-6xl mx-auto px-6 py-16">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-10 mb-16">
+                <div class="col-span-2 md:col-span-1"><div class="flex items-center gap-2 mb-4"><iconify-icon icon="solar:football-bold" class="text-gold text-lg"></iconify-icon><span class="font-serif text-white">GRIDIRON <span class="text-gold">ELITE</span></span></div><p class="text-xs text-neutral-500 leading-relaxed mb-6">The official home of NFL excellence.</p><div class="flex items-center gap-3"><a href="#" class="w-9 h-9 rounded-full border border-white/10 bg-white/[0.03] flex items-center justify-center hover:border-gold/30 transition-all cursor-pointer" data-hover><iconify-icon icon="mdi:twitter" class="text-neutral-500 text-sm"></iconify-icon></a><a href="#" class="w-9 h-9 rounded-full border border-white/10 bg-white/[0.03] flex items-center justify-center hover:border-gold/30 transition-all cursor-pointer" data-hover><iconify-icon icon="mdi:instagram" class="text-neutral-500 text-sm"></iconify-icon></a><a href="#" class="w-9 h-9 rounded-full border border-white/10 bg-white/[0.03] flex items-center justify-center hover:border-gold/30 transition-all cursor-pointer" data-hover><iconify-icon icon="mdi:youtube" class="text-neutral-500 text-sm"></iconify-icon></a></div></div>
+                <div><h4 class="text-xs font-semibold text-white uppercase tracking-wider mb-4">League</h4><ul class="space-y-3"><li><a href="#" class="text-xs text-neutral-500 hover:text-gold transition-colors cursor-pointer" data-hover>Teams</a></li><li><a href="#" class="text-xs text-neutral-500 hover:text-gold transition-colors cursor-pointer" data-hover>Schedule</a></li><li><a href="#" class="text-xs text-neutral-500 hover:text-gold transition-colors cursor-pointer" data-hover>Standings</a></li><li><a href="#" class="text-xs text-neutral-500 hover:text-gold transition-colors cursor-pointer" data-hover>Stats</a></li></ul></div>
+                <div><h4 class="text-xs font-semibold text-white uppercase tracking-wider mb-4">Community</h4><ul class="space-y-3"><li><a href="#" class="text-xs text-neutral-500 hover:text-gold transition-colors cursor-pointer" data-hover>Membership</a></li><li><a href="#" class="text-xs text-neutral-500 hover:text-gold transition-colors cursor-pointer" data-hover>Fan Chapters</a></li><li><a href="#" class="text-xs text-neutral-500 hover:text-gold transition-colors cursor-pointer" data-hover>Foundation</a></li><li><a href="#" class="text-xs text-neutral-500 hover:text-gold transition-colors cursor-pointer" data-hover>Youth Programs</a></li></ul></div>
+                <div><h4 class="text-xs font-semibold text-white uppercase tracking-wider mb-4">Shop</h4><ul class="space-y-3"><li><a href="#" class="text-xs text-neutral-500 hover:text-gold transition-colors cursor-pointer" data-hover>Jerseys</a></li><li><a href="#" class="text-xs text-neutral-500 hover:text-gold transition-colors cursor-pointer" data-hover>Apparel</a></li><li><a href="#" class="text-xs text-neutral-500 hover:text-gold transition-colors cursor-pointer" data-hover>Collectibles</a></li><li><a href="#" class="text-xs text-neutral-500 hover:text-gold transition-colors cursor-pointer" data-hover>Gift Cards</a></li></ul></div>
+            </div>
+            <div class="border-t border-white/5 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+                <p class="text-[11px] text-neutral-600">© 2025 Gridiron Elite. All rights reserved.</p>
+                <div class="flex items-center gap-6"><a href="#" class="text-[11px] text-neutral-600 hover:text-neutral-400 transition-colors cursor-pointer" data-hover>Privacy</a><a href="#" class="text-[11px] text-neutral-600 hover:text-neutral-400 transition-colors cursor-pointer" data-hover>Terms</a><a href="#" class="text-[11px] text-neutral-600 hover:text-neutral-400 transition-colors cursor-pointer" data-hover>Accessibility</a></div>
+            </div>
+        </div>
+    </footer>
+</main>
+
+<!-- ===================== THREE.JS 3D FOOTBALL ===================== -->
+<script type="importmap">
+{
+    "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+}
+</script>
+<script type="module">
+import * as THREE from 'three';
+
+// Wait for preloader to finish
+const initThree = () => {
+    const container = document.getElementById('three-container');
+    if (!container) return;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+    camera.position.z = 4;
+
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setClearColor(0x000000, 0);
+    container.appendChild(renderer.domElement);
+
+    // Lights
+    const ambient = new THREE.AmbientLight(0xffffff, 0.3);
+    scene.add(ambient);
+    const spot1 = new THREE.SpotLight(0xC7A368, 30, 15, 0.4, 0.5);
+    spot1.position.set(3, 4, 3);
+    scene.add(spot1);
+    const spot2 = new THREE.SpotLight(0xffffff, 15, 15, 0.5, 0.5);
+    spot2.position.set(-3, 2, -2);
+    scene.add(spot2);
+
+    // Football shape (elongated sphere)
+    const geometry = new THREE.SphereGeometry(1, 64, 64);
+    const posAttr = geometry.attributes.position;
+    for (let i = 0; i < posAttr.count; i++) {
+        const x = posAttr.getX(i);
+        const y = posAttr.getY(i);
+        const z = posAttr.getZ(i);
+        // Elongate along X axis
+        posAttr.setX(i, x * 1.6);
+        // Slight pinch at poles (Y)
+        const yFactor = 1 - Math.pow(Math.abs(y) * 0.3, 2);
+        posAttr.setX(i, posAttr.getX(i) * yFactor);
+        posAttr.setZ(i, z * yFactor);
+    }
+    geometry.computeVertexNormals();
+
+    const material = new THREE.MeshPhysicalMaterial({
+        color: 0x8B4513,
+        roughness: 0.55,
+        metalness: 0.05,
+        clearcoat: 0.3,
+        clearcoatRoughness: 0.4,
+    });
+    const football = new THREE.Mesh(geometry, material);
+    scene.add(football);
+
+    // Lace lines (simple torus knots as decoration)
+    const laceGeo = new THREE.TorusGeometry(0.12, 0.02, 8, 16);
+    const laceMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8 });
+    for (let i = -2; i <= 2; i++) {
+        const lace = new THREE.Mesh(laceGeo, laceMat);
+        lace.position.x = 0;
+        lace.position.y = i * 0.18;
+        lace.rotation.x = Math.PI / 2;
+        football.add(lace);
+    }
+
+    // Gold ring
+    const ringGeo = new THREE.TorusGeometry(2, 0.01, 16, 100);
+    const ringMat = new THREE.MeshStandardMaterial({ color: 0xC7A368, emissive: 0xC7A368, emissiveIntensity: 0.5 });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.rotation.x = Math.PI / 2.5;
+    scene.add(ring);
+
+    // Mouse tracking
+    let mouseX = 0, mouseY = 0;
+    window.addEventListener('mousemove', (e) => {
+        mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+        mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+    });
+
+    // Animate
+    const clock = new THREE.Clock();
+    const animate = () => {
+        requestAnimationFrame(animate);
+        const t = clock.getElapsedTime();
+        football.rotation.y = t * 0.3 + mouseX * 0.5;
+        football.rotation.x = Math.sin(t * 0.2) * 0.2 + mouseY * 0.3;
+        football.rotation.z = Math.sin(t * 0.15) * 0.1;
+        ring.rotation.z = t * 0.1;
+        ring.rotation.x = Math.PI / 2.5 + Math.sin(t * 0.3) * 0.1;
+        renderer.render(scene, camera);
+    };
+    animate();
+
+    // Resize
+    window.addEventListener('resize', () => {
+        const w = container.clientWidth, h = container.clientHeight;
+        renderer.setSize(w, h);
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+    });
+};
+
+// Init after preloader
+setTimeout(initThree, 2400);
+</script>
+
+<!-- ===================== WEBGL SHADER BACKGROUND ===================== -->
+<script>
+(function() {
+    const canvas = document.getElementById('webgl-bg');
+    const gl = canvas.getContext('webgl');
+    if (!gl) return;
+
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        gl.viewport(0, 0, canvas.width, canvas.height);
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    const vsSource = `attribute vec2 a_position;void main(){gl_Position=vec4(a_position,0.0,1.0);}`;
+    const fsSource = `
+    precision mediump float;
+    uniform float u_time;
+    uniform vec2 u_resolution;
+    uniform vec2 u_mouse;
+
+    float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+    float noise(vec2 p){
+        vec2 i=floor(p);vec2 f=fract(p);
+        f=f*f*(3.0-2.0*f);
+        float a=hash(i);float b=hash(i+vec2(1,0));
+        float c=hash(i+vec2(0,1));float d=hash(i+vec2(1,1));
+        return mix(mix(a,b,f.x),mix(c,d,f.x),f.y);
+    }
+    float fbm(vec2 p){
+        float v=0.0;float a=0.5;mat2 rot=mat2(0.8,0.6,-0.6,0.8);
+        for(int i=0;i<5;i++){v+=a*noise(p);p=rot*p*2.0;a*=0.5;}
+        return v;
+    }
+    void main(){
+        vec2 uv=gl_FragCoord.xy/u_resolution;
+        vec2 p=uv*3.0;
+        float t=u_time*0.15;
+        float mouseInfluence=length(uv-u_mouse)*0.5;
+
+        float f1=fbm(p+vec2(t,t*0.5));
+        float f2=fbm(p*1.5+vec2(-t*0.7,t*0.3)+f1*0.5);
+        float f3=fbm(p*0.8+vec2(t*0.4,-t*0.6)+f2*0.3);
+
+        vec3 col1=vec3(0.78,0.64,0.41); // gold
+        vec3 col2=vec3(0.02,0.02,0.02);  // dark
+        vec3 col=mix(col2,col1,f3*0.4*(1.0-mouseInfluence*0.5));
+
+        // Vignette
+        float vig=1.0-length((uv-0.5)*1.5);
+        vig=smoothstep(0.0,0.7,vig);
+        col*=vig*0.6;
+
+        gl_FragColor=vec4(col,1.0);
+    }`;
+
+    function createShader(type, source) {
+        const s = gl.createShader(type);
+        gl.shaderSource(s, source);
+        gl.compileShader(s);
+        return s;
+    }
+
+    const vs = createShader(gl.VERTEX_SHADER, vsSource);
+    const fs = createShader(gl.FRAGMENT_SHADER, fsSource);
+    const program = gl.createProgram();
+    gl.attachShader(program, vs);
+    gl.attachShader(program, fs);
+    gl.linkProgram(program);
+    gl.useProgram(program);
+
+    const buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), gl.STATIC_DRAW);
+    const aPos = gl.getAttribLocation(program, 'a_position');
+    gl.enableVertexAttribArray(aPos);
+    gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+
+    const uTime = gl.getUniformLocation(program, 'u_time');
+    const uRes = gl.getUniformLocation(program, 'u_resolution');
+    const uMouse = gl.getUniformLocation(program, 'u_mouse');
+
+    let mx = 0.5, my = 0.5;
+    window.addEventListener('mousemove', (e) => { mx = e.clientX / window.innerWidth; my = 1 - e.clientY / window.innerHeight; });
+
+    const render = (time) => {
+        gl.uniform1f(uTime, time * 0.001);
+        gl.uniform2f(uRes, canvas.width, canvas.height);
+        gl.uniform2f(uMouse, mx, my);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        requestAnimationFrame(render);
+    };
+    requestAnimationFrame(render);
+})();
+</script>
+
+<!-- ===================== PARTICLE SYSTEM ===================== -->
+<script>
+(function() {
+    const canvas = document.getElementById('particle-canvas');
+    const ctx = canvas.getContext('2d');
+    let W, H, particles = [];
+
+    function resize() {
+        W = canvas.width = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    class Particle {
+        constructor() { this.reset(); }
+        reset() {
+            this.x = Math.random() * W;
+            this.y = Math.random() * H;
+            this.size = Math.random() * 1.5 + 0.5;
+            this.speedX = (Math.random() - 0.5) * 0.3;
+            this.speedY = (Math.random() - 0.5) * 0.3;
+            this.opacity = Math.random() * 0.5 + 0.1;
+            this.life = Math.random() * 200 + 100;
+            this.maxLife = this.life;
+        }
+        update() {
+            this.x += this.speedX;
+            this.y += this.speedY;
+            this.life--;
+            if (this.life <= 0 || this.x < 0 || this.x > W || this.y < 0 || this.y > H) this.reset();
+        }
+        draw() {
+            const fade = this.life / this.maxLife;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(199, 163, 104, ${this.opacity * fade})`;
+            ctx.fill();
+        }
+    }
+
+    for (let i = 0; i < 80; i++) particles.push(new Particle());
+
+    function animate() {
+        ctx.clearRect(0, 0, W, H);
+        particles.forEach(p => { p.update(); p.draw(); });
+
+        // Draw connections
+        for (let i = 0; i < particles.length; i++) {
+            for (let j = i + 1; j < particles.length; j++) {
+                const dx = particles[i].x - particles[j].x;
+                const dy = particles[i].y - particles[j].y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < 120) {
+                    ctx.beginPath();
+                    ctx.moveTo(particles[i].x, particles[i].y);
+                    ctx.lineTo(particles[j].x, particles[j].y);
+                    ctx.strokeStyle = `rgba(199, 163, 104, ${0.06 * (1 - dist / 120)})`;
+                    ctx.lineWidth = 0.5;
+                    ctx.stroke();
+                }
+            }
+        }
+        requestAnimationFrame(animate);
+    }
+    animate();
+})();
+</script>
+
+<!-- ===================== CURSOR FOLLOWER ===================== -->
+<script>
+(function() {
+    const dot = document.getElementById('cursor-dot');
+    const ring = document.getElementById('cursor-ring');
+    if (!dot || !ring || window.matchMedia('(pointer: coarse)').matches) return;
+
+    let mx = 0, my = 0, rx = 0, ry = 0;
+
+    document.addEventListener('mousemove', (e) => {
+        mx = e.clientX; my = e.clientY;
+        dot.style.left = mx + 'px';
+        dot.style.top = my + 'px';
+    });
+
+    // Smooth ring follow
+    const followRing = () => {
+        rx += (mx - rx) * 0.15;
+        ry += (my - ry) * 0.15;
+        ring.style.left = rx + 'px';
+        ring.style.top = ry + 'px';
+        requestAnimationFrame(followRing);
+    };
+    followRing();
+
+    // Show ring after first move
+    document.addEventListener('mousemove', () => { ring.style.opacity = '1'; }, { once: true });
+
+    // Hover states
+    document.querySelectorAll('[data-hover]').forEach(el => {
+        el.addEventListener('mouseenter', () => { dot.classList.add('hovering'); ring.classList.add('hovering'); });
+        el.addEventListener('mouseleave', () => { dot.classList.remove('hovering'); ring.classList.remove('hovering'); });
+    });
+})();
+</script>
+
+<!-- ===================== SCROLL PARALLAX ===================== -->
+<script>
+(function() {
+    const layers = document.querySelectorAll('.parallax-layer');
+    let ticking = false;
+
+    window.addEventListener('scroll', () => {
+        if (!ticking) {
+            requestAnimationFrame(() => {
+                const scrollY = window.scrollY;
+                layers.forEach(layer => {
+                    const speed = parseFloat(layer.dataset.speed) || 0.1;
+                    const rect = layer.getBoundingClientRect();
+                    const yPos = -(scrollY - layer.offsetTop) * speed;
+                    layer.style.transform = `translateY(${yPos}px)`;
+                });
+                ticking = false;
+            });
+            ticking = true;
+        }
+    });
+})();
+</script>
+
+<!-- ===================== BARBA.JS PAGE TRANSITIONS ===================== -->
+<script src="https://unpkg.com/@barba/core@2.9.7/dist/barba.umd.js"></script>
+<script>
+(function() {
+    if (typeof barba === 'undefined') return;
+
+    const transition = document.getElementById('page-transition');
+
+    barba.init({
+        preventRunning: true,
+        transitions: [{
+            name: 'curtain',
+            leave(data) {
+                transition.classList.add('entering');
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        data.current.container.classList.add('barba-leave');
+                        setTimeout(resolve, 400);
+                    }, 300);
+                });
+            },
+            enter(data) {
+                transition.classList.remove('entering');
+                transition.classList.add('leaving');
+                data.next.container.classList.add('barba-enter');
+                window.scrollTo(0, 0);
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        transition.classList.remove('leaving');
+                        data.next.container.classList.remove('barba-enter');
+                        // Re-init observers for new content
+                        initObservers();
+                        resolve();
+                    }, 600);
+                });
+            }
+        }]
+    });
+})();
+</script>
+
+<!-- ===================== CORE UI LOGIC ===================== -->
+<script>
+// ===== PRELOADER =====
+let preloaderCount = 0;
+const preloaderInterval = setInterval(() => {
+    preloaderCount += Math.floor(Math.random() * 8) + 2;
+    if (preloaderCount >= 100) { preloaderCount = 100; clearInterval(preloaderInterval); }
+    document.getElementById('preloader-count').textContent = preloaderCount;
+}, 50);
+window.addEventListener('load', () => {
+    preloaderCount = 100;
+    document.getElementById('preloader-count').textContent = '100';
+    clearInterval(preloaderInterval);
+    setTimeout(() => document.getElementById('preloader').classList.add('hidden'), 400);
+});
+
+// ===== SCROLL REVEAL =====
+function initObservers() {
+    const obs = new IntersectionObserver((entries) => {
+        entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('is-visible'); });
+    }, { threshold: 0.1, rootMargin: '0px' });
+    document.querySelectorAll('.reveal-on-scroll:not(.is-visible)').forEach(el => obs.observe(el));
+
+    // Counter
+    const cObs = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+            if (e.isIntersecting) {
+                const el = e.target, target = parseInt(el.dataset.target);
+                let cur = 0; const inc = target / 60;
+                const timer = setInterval(() => { cur += inc; if (cur >= target) { cur = target; clearInterval(timer); } el.textContent = Math.floor(cur); }, 25);
+                cObs.unobserve(el);
+            }
+        });
+    }, { threshold: 0.5 });
+    document.querySelectorAll('.counter').forEach(el => cObs.observe(el));
+}
+initObservers();
+
+// ===== NAVBAR =====
+const navbar = document.getElementById('navbar');
+const backToTop = document.getElementById('back-to-top');
+window.addEventListener('scroll', () => {
+    const y = window.scrollY;
+    navbar.style.background = y > 80 ? 'rgba(5,5,5,0.85)' : 'transparent';
+    navbar.style.backdropFilter = y > 80 ? 'blur(12px)' : 'none';
+    navbar.style.borderBottom = y > 80 ? '1px solid rgba(255,255,255,0.05)' : 'none';
+    backToTop.classList.toggle('visible', y > 600);
+});
+
+// ===== MOBILE MENU =====
+function toggleMobileMenu() { document.getElementById('mobile-menu').classList.toggle('open'); }
+function closeMobileMenu() { document.getElementById('mobile-menu').classList.remove('open'); }
+
+// ===== FAQ =====
+function toggleFaq(btn) {
+    const item = btn.closest('.faq-item'), content = item.querySelector('.faq-content'), icon = item.querySelector('.faq-icon');
+    const isOpen = !content.classList.contains('hidden');
+    document.querySelectorAll('.faq-item').forEach(f => { f.querySelector('.faq-content').classList.add('hidden'); f.querySelector('.faq-icon').style.transform = 'rotate(0deg)'; f.style.borderColor = ''; });
+    if (!isOpen) { content.classList.remove('hidden'); icon.style.transform = 'rotate(180deg)'; item.style.borderColor = 'rgba(199,163,104,0.2)'; }
+}
+
+// ===== LEGENDS SLIDER =====
+let legendPos = 0;
+function scrollLegends(dir) {
+    const track = document.getElementById('legends-track');
+    const cardW = window.innerWidth >= 768 ? 356 : 306;
+    const maxScroll = -(track.children.length * cardW - track.parentElement.offsetWidth);
+    legendPos = Math.max(maxScroll, Math.min(0, legendPos + dir * -cardW));
+    track.style.transform = `translateX(${legendPos}px)`;
+}
+
+// ===== NEWSLETTER =====
+function handleNewsletter(e) {
+    e.preventDefault();
+    const email = document.getElementById('newsletter-email').value;
+    showToast(`Welcome to the huddle, ${email}!`);
+    document.getElementById('newsletter-email').value = '';
+}
+
+// ===== COOKIE =====
+function dismissCookie() { document.getElementById('cookie-banner').classList.remove('visible'); }
+setTimeout(() => document.getElementById('cookie-banner').classList.add('visible'), 4500);
+
+// ===== TOAST =====
+function showToast(message) {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = 'toast-enter flex items-center gap-3 px-5 py-3 rounded-xl bg-surface-200/95 backdrop-blur-md border border-white/10 shadow-2xl max-w-sm';
+    toast.innerHTML = `<div class="w-8 h-8 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center flex-shrink-0"><iconify-icon icon="solar:check-circle-bold" class="text-gold text-sm"></iconify-icon></div><p class="text-xs text-neutral-300 leading-relaxed">${message}</p>`;
+    container.appendChild(toast);
+    setTimeout(() => { toast.classList.remove('toast-enter'); toast.classList.add('toast-exit'); setTimeout(() => toast.remove(), 400); }, 3000);
+}
+
+// ===== SMOOTH SCROLL =====
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', function(e) {
+        e.preventDefault();
+        const t = document.querySelector(this.getAttribute('href'));
+        if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+});
+</script>
+</body>
+</html>
