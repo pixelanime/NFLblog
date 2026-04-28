@@ -1461,7 +1461,32 @@ function handleImageUpload(e) {
       .upload(`${Date.now()}_${file.name}`, file);
     if(!error) APP.tempArticleImage = data.path;
     */
-    
+    async function uploadRealImage(base64Data) {
+  try {
+    // Konversi base64 ke File Blob
+    const fetchResponse = await fetch(base64Data);
+    const blob = await fetchResponse.blob();
+    const fileName = `${Date.now()}.jpg`;
+
+    // Upload ke Supabase Storage
+    const { data, error } = await _supabase.storage
+      .from('article-images')
+      .upload(fileName, blob);
+
+    if (error) throw error;
+
+    // Ambil URL Public gambar tersebut
+    const { data: { publicUrl } } = _supabase.storage
+      .from('article-images')
+      .getPublicUrl(fileName);
+
+    return publicUrl;
+  } catch (error) {
+    console.error('Upload error:', error);
+    showToast("Gagal upload gambar", "error");
+    return null;
+  }
+}
     // For this standalone HTML, we use Base64
     APP.tempArticleImage = evt.target.result;
     
