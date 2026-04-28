@@ -1011,6 +1011,11 @@ var AUTH_MODULE = (function() {
 
 /* ===== STATE ===== */
 var APP={
+  // ... kode yang sudah ada ...
+  adminTab:"overview",
+  users: [], // Penampung data user baru
+  currentUser: null, // Menyimpan siapa yang sedang login
+  // ... kode lainnya ...
   currentStandings:"east",
   isLoggedIn:localStorage.getItem("adminAuth")==="1",
   adminTab:"overview",
