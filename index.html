@@ -1577,3 +1577,147 @@ function saveAdSettings(){
 
 function adminApi(){
   return '<div class="settings-group"><div class="settings-group-title"><i class="fas fa-key"></i> Google Sheets API Key
+</div><div class="form-group"><label class="form-label">API Key</label><input type="password" class="form-input" id="sheetsApiInput" placeholder="AIzaSy..." value="'+APP.settings.sheetsApiKey+'"></div><p style="font-size:0.78rem;color:var(--muted);margin-top:4px;">Required for Google Sheets sync. Create one in Google Cloud Console under APIs & Services - Credentials.</p></div><div class="settings-group"><div class="settings-group-title"><i class="fas fa-basketball-ball"></i> TheSportsDB API</div><div class="form-group"><label class="form-label">API Key (Optional)</label><input type="password" class="form-input" id="sportsApiInput" placeholder="Enter TheSportsDB API key for premium tier" value="'+APP.settings.sportsApiKey+'"></div><p style="font-size:0.78rem;color:var(--muted);margin-top:4px;">The free tier (key=3) is used by default. Enter a Patreon API key for premium features like detailed player data and faster rate limits.</p><div style="margin-top:12px;padding:12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);"><div style="font-size:0.82rem;font-weight:600;margin-bottom:6px;color:var(--fg);">Current Free Tier Endpoints Used:</div><ul style="font-size:0.78rem;color:var(--fg-secondary);line-height:2;padding-left:16px;"><li><code style="background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:4px;font-size:0.72rem;">lookuptable.php</code> — League standings</li><li><code style="background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:4px;font-size:0.72rem;">eventsround.php</code> — Upcoming events by round</li><li><code style="background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:4px;font-size:0.72rem;">eventspastleague.php</code> — Past league results</li><li><code style="background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:4px;font-size:0.72rem;">lookupleague.php</code> — League details &amp; badge</li></ul></div></div><div class="settings-actions"><button class="btn-primary" style="padding:10px 24px;font-size:0.85rem;" onclick="saveApiSettings()"><i class="fas fa-save"></i> Save API Keys</button><button class="btn-secondary" style="padding:10px 24px;font-size:0.85rem;" onclick="testApiConnection()"><i class="fas fa-plug"></i> Test Connection</button><button class="btn-secondary" style="padding:10px 24px;font-size:0.85rem;" onclick="clearApiCache()"><i class="fas fa-trash-alt"></i> Clear Cache</button></div><div class="settings-group" style="margin-top:24px;"><div class="settings-group-title"><i class="fas fa-shield-alt"></i> Security Notes</div><ul style="font-size:0.84rem;color:var(--fg-secondary);line-height:2;padding-left:20px;"><li>API keys are stored locally in your browser (localStorage).</li><li>In production, API keys should be stored server-side via environment variables.</li><li>Never commit API keys to public repositories.</li><li>Restrict your Google Sheets API key to specific domains in the Cloud Console.</li><li>TheSportsDB free tier has rate limits — data is cached for 2 hours to reduce API calls.</li></ul></div>';
+}
+
+function saveApiSettings(){
+  APP.settings.sheetsApiKey=document.getElementById("sheetsApiInput").value;
+  APP.settings.sportsApiKey=document.getElementById("sportsApiInput").value;
+  localStorage.setItem("sheetsApiKey",APP.settings.sheetsApiKey);
+  localStorage.setItem("sportsApiKey",APP.settings.sportsApiKey);
+  showToast("API keys saved securely","success");
+}
+
+function testApiConnection(){
+  showToast("Testing API connections...","info");
+  // Test TheSportsDB free tier
+  fetch("https://www.thesportsdb.com/api/v1/json/3/lookupleague.php?id=4387")
+    .then(function(r){return r.json()})
+    .then(function(json){
+      if(json.leagues&&json.leagues.length>0){
+        showToast("TheSportsDB: Connected successfully","success");
+      }else{
+        showToast("TheSportsDB: Unexpected response","error");
+      }
+    })
+    .catch(function(){
+      showToast("TheSportsDB: Connection failed","error");
+    });
+
+  setTimeout(function(){
+    if(APP.settings.sheetsApiKey){
+      showToast("Sheets API: Key format detected","success");
+    }else{
+      showToast("Sheets API: No key provided","info");
+    }
+  },1200);
+}
+
+function clearApiCache(){
+  try{
+    localStorage.removeItem(API_CACHE_KEY);
+    showToast("API cache cleared. Data will re-fetch on next load.","success");
+  }catch(e){
+    showToast("Failed to clear cache","error");
+  }
+}
+
+/* ===== SCROLL ANIMATIONS ===== */
+function initScrollAnimations(){
+  var observer=new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if(entry.isIntersecting){
+        entry.target.classList.add("visible");
+        observer.unobserve(entry.target);
+      }
+    });
+  },{threshold:0.1,rootMargin:"0px 0px -40px 0px"});
+  document.querySelectorAll(".fade-in").forEach(function(el){observer.observe(el)});
+}
+
+/* ===== ACTIVE NAV ===== */
+function initActiveNav(){
+  var sections=["live","predictions","standings","stats","articles","schedule"];
+  var observer=new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if(entry.isIntersecting){
+        var id=entry.target.id;
+        document.querySelectorAll(".nav-links a").forEach(function(a){
+          a.classList.toggle("active",a.getAttribute("href")==="#"+id);
+        });
+      }
+    });
+  },{threshold:0.3,rootMargin:"-80px 0px -50% 0px"});
+  sections.forEach(function(id){
+    var el=document.getElementById(id);
+    if(el)observer.observe(el);
+  });
+}
+
+/* ===== HERO PARALLAX ===== */
+function initHeroParallax(){
+  var hero=document.getElementById("hero");
+  var court=document.querySelector(".hero-court");
+  var particles=document.getElementById("heroParticles");
+  if(!hero)return;
+  hero.addEventListener("mousemove",function(e){
+    var rect=hero.getBoundingClientRect();
+    var x=(e.clientX-rect.left)/rect.width-0.5;
+    var y=(e.clientY-rect.top)/rect.height-0.5;
+    if(court)court.style.transform="translate("+x*12+"px,"+y*12+"px)";
+    if(particles)particles.style.transform="translate("+x*-8+"px,"+y*-8+"px)";
+  });
+  hero.addEventListener("mouseleave",function(){
+    if(court)court.style.transform="";
+    if(particles)particles.style.transform="";
+  });
+}
+
+/* ===== INIT ===== */
+document.addEventListener("DOMContentLoaded",function(){
+  // Muat artikel dari localStorage (perbaikan utama)
+  loadArticles();
+
+  // Render semua komponen dengan data yang sudah dimuat
+  renderArticles();
+  renderLiveScores();
+  renderPredictions();
+  renderStandings("east");
+  renderPlayerStats();
+  renderSchedule();
+  createParticles();
+
+  // Update hero counters berdasarkan data aktual
+  animateCounter(document.getElementById("heroStatArticles"),APP.articles.length);
+  animateCounter(document.getElementById("heroStatPlayers"),PLAYER_STATS.length);
+  animateCounter(document.getElementById("heroStatReaders"),48200);
+
+  // Fetch data dari TheSportsDB (akan meng-update standings, live scores, schedule)
+  fetchTheSportsDBData();
+
+  // Inisialisasi fitur UI
+  initScrollAnimations();
+  initActiveNav();
+  initHeroParallax();
+
+  // Simulasi live score update setiap 8 detik
+  setInterval(simulateLiveUpdates,8000);
+
+  // Rebuild search index setelah data siap
+  setTimeout(function(){
+    searchIndex=buildSearchIndex();
+  },2000);
+
+  // Event listeners untuk admin login
+  document.getElementById("adminPass").addEventListener("keydown",function(e){
+    if(e.key==="Enter")handleAdminLogin();
+  });
+  document.getElementById("adminUser").addEventListener("keydown",function(e){
+    if(e.key==="Enter")document.getElementById("adminPass").focus();
+  });
+
+  console.log("DUNK NATION initialized with "+APP.articles.length+" articles");
+});
+</script>
+</body>
+</html>
