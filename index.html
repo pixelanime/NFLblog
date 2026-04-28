@@ -927,9 +927,12 @@
 <script>
 /* ===== CONFIGURATION & MOCK SUPABASE CLIENT ===== */
 // NOTE: To use real Supabase, replace this object with: const supabase = supabase.createClient('YOUR_URL', 'YOUR_KEY');
-const SUPABASE_CLIENT = {
-  auth: {
-    signInWithPassword: async ({ email, password }) => {
+// GANTI BAGIAN INI DI KODE ANDA
+const supabaseUrl = 'https://tfotqzjpzsdaqkcevhgw.supabase.co'; 
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmb3RxempwenNkYXFrY2V2aGd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNjc1NDIsImV4cCI6MjA5Mjk0MzU0Mn0.UW1kbU9iltcW4uZuoCYQPVFVlr-x6l-YOAfgr2vJs1Q';
+
+const { createClient } = supabase;
+const _supabase = createClient(supabaseUrl, supabaseKey); {
       // Simulation of Supabase Auth
       return new Promise((resolve, reject) => {
         setTimeout(() => {
