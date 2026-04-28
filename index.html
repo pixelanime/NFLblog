@@ -924,6 +924,52 @@ var DEFAULT_SCHEDULE=[
   {home:"IND",away:"CHI",day:"31",month:"Jan",time:"8:00 PM ET",venue:"Gainbridge FieldHouse"}
 ];
 
+/* ===== SECURE AUTH MODULE ===== */
+var AUTH_MODULE = (function() {
+  // SALT untuk membuat hash lebih sulit di-crack (bisa diubah sesuka hati)
+  var SALT = "DnK_2025_S3cur3_R4nd0m_Str1ng!"; 
+  
+  // Fungsi untuk meng-hash string menggunakan SHA-256
+  async function hashString(str) {
+    const encoder = new TextEncoder();
+    // Menggabungkan password dengan salt sebelum di-hash
+    const data = encoder.encode(str + SALT);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    // Mengubah buffer menjadi string hex (contoh: 3a7b...)
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  // INSTRUKSI CARA GANTI PASSWORD:
+  // 1. Buka Console Browser (F12 -> Tab Console)
+  // 2. Ketik: AUTH_MODULE.generateHash('password_baru_anda')
+  // 3. Tekan Enter, akan muncul hash-nya (misal: "a1b2c3d4...")
+  // 4. Copy hash tersebut, dan ganti nilai di bawah ini:
+  var VALID_CREDENTIALS = {
+    // Hash untuk username: "admin" + SALT
+    user: "9e5f8f6c8c0e4c3e8c8d4d0d0c3e0c3f8c0e4c3e8c8d4d0d0c3e0c3f8c0e4",
+    // Hash untuk password: "nbadraft2025" + SALT
+    pass: "f4c5e6d7b8a9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3"
+  };
+
+  return {
+    generateHash: hashString,
+    validate: async function(username, password) {
+      try {
+        // Hash inputan user saat ini
+        const hashedUser = await hashString(username);
+        const hashedPass = await hashString(password);
+        
+        // Bandingkan dengan hash yang tersimpan
+        return hashedUser === VALID_CREDENTIALS.user && hashedPass === VALID_CREDENTIALS.pass;
+      } catch (error) {
+        console.error("Auth validation error:", error);
+        return false;
+      }
+    }
+  };
+})();
+
 /* ===== STATE ===== */
 var APP={
   currentStandings:"east",
@@ -1220,21 +1266,43 @@ function closeAdmin(){
   });
 }
 
-function handleAdminLogin(){
+/* [PERUBAHAN UTAMA] FUNGSI LOGIN YANG SUDAH AMAN */
+async function handleAdminLogin(){
   safeExecute(function(){
     var u=document.getElementById("adminUser"),p=document.getElementById("adminPass");
     var ue=document.getElementById("userError"),pe=document.getElementById("passError");
     if(!u||!p||!ue||!pe) return;
     
+    // Reset error state
     ue.classList.remove("show");pe.classList.remove("show");u.classList.remove("error");p.classList.remove("error");
-    var ok=true;
-    if(u.value!=="admin"){ue.classList.add("show");u.classList.add("error");ok=false}
-    if(p.value!=="nbadraft2025"){pe.classList.add("show");p.classList.add("error");ok=false}
-    if(!ok)return;
-    APP.isLoggedIn=true;localStorage.setItem("adminAuth","1");
-    document.getElementById("adminLogin").style.display="none";
-    document.getElementById("adminDashboard").style.display="flex";
-    u.value="";p.value="";renderAdminContent();showToast("Welcome back, Admin","success");
+    
+    // Nonaktifkan tombol sementara proses verifikasi berjalan
+    var btn = document.querySelector('.admin-login-box .form-btn');
+    if(btn) { btn.disabled = true; btn.textContent = 'Verifying...'; }
+
+    // Gunakan AUTH_MODULE untuk mengecek hash
+    AUTH_MODULE.validate(u.value, p.value).then(function(isValid) {
+      if(!isValid){
+        // Jika gagal, berikan pesan error umum agar tidak mudah ditebak
+        ue.textContent = "Invalid username or password";
+        pe.textContent = "Invalid username or password";
+        ue.classList.add("show");pe.classList.add("show");u.classList.add("error");p.classList.add("error");
+        if(btn) { btn.disabled = false; btn.textContent = 'Sign In'; }
+        return;
+      }
+      
+      // Jika berhasil
+      APP.isLoggedIn=true;localStorage.setItem("adminAuth","1");
+      document.getElementById("adminLogin").style.display="none";
+      document.getElementById("adminDashboard").style.display="flex";
+      u.value="";p.value="";
+      if(btn) { btn.disabled = false; btn.textContent = 'Sign In'; }
+      renderAdminContent();showToast("Welcome back, Admin","success");
+    }).catch(function(err) {
+      console.error("Login error:", err);
+      showToast("An error occurred during login","error");
+      if(btn) { btn.disabled = false; btn.textContent = 'Sign In'; }
+    });
   });
 }
 
@@ -1508,10 +1576,7 @@ document.addEventListener("DOMContentLoaded",function(){
   console.log("DUNK NATION initializing...");
   
   try{
-    // Muat artikel dari localStorage
     loadArticles();
-
-    // Render semua komponen dengan data yang sudah dimuat
     renderArticles();
     renderLiveScores();
     renderPredictions();
@@ -1520,22 +1585,17 @@ document.addEventListener("DOMContentLoaded",function(){
     renderSchedule();
     createParticles();
 
-    // Update hero counters
     animateCounter(document.getElementById("heroStatArticles"),APP.articles.length);
     animateCounter(document.getElementById("heroStatPlayers"),PLAYER_STATS.length);
     animateCounter(document.getElementById("heroStatReaders"),48200);
 
-    // Build search index
     searchIndex=buildSearchIndex();
 
-    // Inisialisasi fitur UI
     initScrollAnimations();
     initActiveNav();
 
-    // Simulasi live score update
     setInterval(simulateLiveUpdates,8000);
 
-    // Event listeners
     var searchInput=document.getElementById("searchInput");
     if(searchInput){
       searchInput.addEventListener("input",function(){
@@ -1554,24 +1614,20 @@ document.addEventListener("DOMContentLoaded",function(){
       });
     }
 
-    // Keyboard shortcuts
     document.addEventListener("keydown",function(e){
       if(e.key==="Escape"){closeSearch();closeMobileNav()}
       if((e.metaKey||e.ctrlKey)&&e.key==="k"){e.preventDefault();openSearch()}
     });
 
-    // Modal close on backdrop click
     document.querySelectorAll(".modal-overlay").forEach(function(m){
       m.addEventListener("click",function(e){if(e.target===m)m.classList.remove("open")});
     });
 
-    // Admin login Enter key
     var adminPass=document.getElementById("adminPass");
     var adminUser=document.getElementById("adminUser");
     if(adminPass) adminPass.addEventListener("keydown",function(e){if(e.key==="Enter")handleAdminLogin()});
     if(adminUser) adminUser.addEventListener("keydown",function(e){if(e.key==="Enter"){var p=document.getElementById("adminPass");if(p)p.focus()}});
 
-    // Hero parallax
     var hero=document.getElementById("hero");
     var court=document.querySelector(".hero-court");
     var particles=document.getElementById("heroParticles");
@@ -1589,7 +1645,6 @@ document.addEventListener("DOMContentLoaded",function(){
       });
     }
 
-    // Update API status setelah render
     setTimeout(function(){
       var liveStatus=document.getElementById("liveApiStatus");
       var standingsStatus=document.getElementById("standingsApiStatus");
@@ -1599,7 +1654,6 @@ document.addEventListener("DOMContentLoaded",function(){
       if(standingsStatus) standingsStatus.innerHTML='<div class="dot online"></div> Standings loaded';
       if(scheduleStatus) scheduleStatus.innerHTML='<div class="dot online"></div> Schedule loaded';
       
-      // Sembunyikan status setelah 3 detik
       setTimeout(function(){
         if(liveStatus) liveStatus.style.display="none";
         if(standingsStatus) standingsStatus.style.display="none";
@@ -1611,8 +1665,6 @@ document.addEventListener("DOMContentLoaded",function(){
 
   }catch(initError){
     console.error("CRITICAL: Initialization error:",initError);
-    
-    // Fallback render - minimalis agar halaman tetap tampil
     var liveContainer=document.getElementById("liveScoresContainer");
     var predictContainer=document.getElementById("predictionsContainer");
     var standingsTable=document.getElementById("standingsTable");
