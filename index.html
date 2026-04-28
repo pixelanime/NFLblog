@@ -987,7 +987,17 @@ var APP={
     sportsApiKey:localStorage.getItem("sportsApiKey")||""
   }
 };
+/* ===== DEBOUNCE UTILITY ===== */
+function debounce(func, wait) {
+  let timeout;
+  return function(...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(this, args), wait);
+  };
+}
 
+/* ===== SAFE FUNCTIONS ===== */
+function safeExecute(fn, fallback) {
 /* ===== SAFE FUNCTIONS ===== */
 function safeExecute(fn, fallback) {
   try {
@@ -1596,9 +1606,9 @@ document.addEventListener("DOMContentLoaded",function(){
 
     setInterval(simulateLiveUpdates,8000);
 
-    var searchInput=document.getElementById("searchInput");
+        var searchInput=document.getElementById("searchInput");
     if(searchInput){
-      searchInput.addEventListener("input",function(){
+      searchInput.addEventListener("input", debounce(function(){
         var q=this.value.toLowerCase().trim();
         var c=document.getElementById("searchResults");
         if(!c)return;
