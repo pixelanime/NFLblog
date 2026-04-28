@@ -1034,9 +1034,13 @@ function saveArticles(){
     localStorage.setItem("dunkNationArticles",JSON.stringify(APP.articles));
   }catch(e){
     console.error("Error saving articles:",e);
+    if(e.name === 'QuotaExceededError' || e.code === 22){
+      showToast("Storage penuh! Coba hapus beberapa artikel lama di menu Admin.","error");
+    } else {
+      showToast("Gagal menyimpan artikel.","error");
+    }
   }
 }
-
 /* ===== UTILITIES ===== */
 function getTeam(abbr){
   return TEAMS.find(function(t){return t.abbr===abbr})||{name:abbr,city:abbr,color:"#555"};
@@ -1466,10 +1470,18 @@ function saveAdSettings(){
     if(monetag) APP.settings.monetagId=monetag.value;
     if(ga4) APP.settings.ga4Id=ga4.value;
     
-    localStorage.setItem("adsenseId",APP.settings.adsenseId);
-    localStorage.setItem("monetagId",APP.settings.monetagId);
-    localStorage.setItem("ga4Id",APP.settings.ga4Id);
-    showToast("Ad & tracking settings saved","success");
+    try {
+      localStorage.setItem("adsenseId",APP.settings.adsenseId);
+      localStorage.setItem("monetagId",APP.settings.monetagId);
+      localStorage.setItem("ga4Id",APP.settings.ga4Id);
+      showToast("Ad & tracking settings saved","success");
+    } catch(e) {
+      if(e.name === 'QuotaExceededError' || e.code === 22){
+        showToast("Browser storage penuh. Gagal menyimpan pengaturan.","error");
+      } else {
+        showToast("Terjadi kesalahan saat menyimpan.","error");
+      }
+    }
   });
 }
 
@@ -1485,9 +1497,17 @@ function saveApiSettings(){
     if(sheets) APP.settings.sheetsApiKey=sheets.value;
     if(sports) APP.settings.sportsApiKey=sports.value;
     
-    localStorage.setItem("sheetsApiKey",APP.settings.sheetsApiKey);
-    localStorage.setItem("sportsApiKey",APP.settings.sportsApiKey);
-    showToast("API keys saved securely","success");
+    try {
+      localStorage.setItem("sheetsApiKey",APP.settings.sheetsApiKey);
+      localStorage.setItem("sportsApiKey",APP.settings.sportsApiKey);
+      showToast("API keys saved securely","success");
+    } catch(e) {
+      if(e.name === 'QuotaExceededError' || e.code === 22){
+        showToast("Browser storage penuh. Gagal menyimpan API Key.","error");
+      } else {
+        showToast("Terjadi kesalahan saat menyimpan.","error");
+      }
+    }
   });
 }
 
